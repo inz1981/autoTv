@@ -11,11 +11,16 @@ def parse_config(config_file):
     import logging
     import json
     import os
+    import sys
     log = logging.getLogger('parse_config')
     log.info('Starting to parse config file ({0})'.format(config_file))
 
     defaults = {}
     cfg = ConfigParser.SafeConfigParser(defaults=defaults)
+    if not os.path.exists(config_file):
+        log.error("Could not find file ({0})".format(config_file))
+        sys.exit(0)
+
     cfg.read(config_file)
 
     sections = ['storage']

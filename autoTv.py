@@ -1,5 +1,5 @@
 #!/usr/local/bin/python
-"""This autoTv program uses RSS feed to download new TV Series
+""" This autoTv program uses RSS feed to download new TV Series
 from torrent sites. It is made for my system at home which includes
 a NAS (FreeNAS) that this program should be run on. The FreeNAS also
 has the transmission plugin installed for the actual download of
@@ -36,7 +36,8 @@ DL_LIST                  = list()
 # Functions
 def getSeasonEpisode(filename):
 	""" Regular expression to retrive Season + Episode from a release name. """
-	return re.findall(r"(?:s|season)(\d{2})(?:e|x|episode|\n)(\d{2})", filename, re.I)
+	return re.findall(r"(?:s|season)(\d{2})(?:e|x|episode|\n)(\d{2})",
+					  filename, re.I)
 	
 def isEpisodeThere(season_dir, season, episode):
 	""" Checks a complete season directory of a specific TV Series if an episode
