@@ -14,6 +14,7 @@ def parse_config(config_file):
     import sys
     log = logging.getLogger('parse_config')
     log.info('Starting to parse config file ({0})'.format(config_file))
+    result = {}
 
     defaults = {}
     cfg = ConfigParser.SafeConfigParser(defaults=defaults)
@@ -28,9 +29,13 @@ def parse_config(config_file):
     for sec in sections:
         log.debug('Fetching section ({0}) parameters'.format(sec))
         try:
-            dl_dir = cfg.get(sec, 'download_dir').strip()
+            dl_dir = os.path.abspath(cfg.get(sec, 'download_dir').strip())
+            result['dl_dir'] = dl_dir
+            tv_dir = os.path.abspath(cfg.get(sec, 'tv_dir').strip())
+            result['tv_dir'] = tv_dir
         except (ConfigParser.NoOptionError,
                 ConfigParser.NoSectionError) as exp:
             log.warn(exp)
             continue
         log.debug('Got ({0}) parameter'.format(dl_dir))
+    return result

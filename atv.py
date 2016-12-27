@@ -51,6 +51,13 @@ def main():
     config = parse_config(options.config_file)
 
     # TODO: The rest of the program...
+    from common.io import IOParser
+    io = IOParser(config['dl_dir'])
+    files = io.read_path('rar')
+    for file in files:
+        if file.endswith('.rar'):
+            io.unrar_archive(file)
+    print "exit!"
 
 if __name__ == '__main__':
     main()
