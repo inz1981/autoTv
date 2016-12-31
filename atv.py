@@ -19,7 +19,7 @@ def main():
     parser.add_option(
         "-c", "--config",
         dest="config_file",
-        help="the vEPC config file(e.g. vepc.cfg)",
+        help="the config file(e.g. autotv.cfg)",
         metavar="FILE")
 
     parser.add_option(
