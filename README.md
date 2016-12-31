@@ -11,12 +11,22 @@ The subcategories of the content that is supported is:
 - Music
 - Pictures
 
+## Table of contents
+<details>
 
-# Configuration file
+<!-- toc -->
+- [Configuration file](#Configuration-file)
+- [Example](#example)
+<!-- tocstop -->
+
+</details>
+
+
+## Configuration file
 The autoTV uses a configuration file in ini format and en example file is
 located in the folder `cfg_examples/autotv.cfg`
 
-# Example
+## Example
 ```
 python atv.py -h
 
