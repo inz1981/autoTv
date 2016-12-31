@@ -9,20 +9,20 @@ def parse_config(config_file):
     """
     import ConfigParser
     import logging
-    import json
     import os
     import sys
+    cfg_file = os.path.abspath(config_file)
     log = logging.getLogger('parse_config')
-    log.info('Starting to parse config file ({0})'.format(config_file))
+    log.info('Starting to parse config file ({0})'.format(cfg_file))
     result = {}
 
     defaults = {}
     cfg = ConfigParser.SafeConfigParser(defaults=defaults)
-    if not os.path.exists(config_file):
-        log.error("Could not find file ({0})".format(config_file))
+    if not os.path.exists(cfg_file):
+        log.error("Could not find file ({0})".format(cfg_file))
         sys.exit(0)
 
-    cfg.read(config_file)
+    cfg.read(cfg_file)
 
     sections = ['storage']
 

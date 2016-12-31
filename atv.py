@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-
+import optparse
 import logging
 from common import parse_config, logger
-import optparse
 
 
 def main():
@@ -51,12 +50,16 @@ def main():
     config = parse_config(options.config_file)
 
     # TODO: The rest of the program...
-    from common.io import IOParser
-    io = IOParser(config['dl_dir'])
-    files = io.read_path('rar')
-    for file in files:
-        if file.endswith('.rar'):
-            io.unrar_archive(file)
+    from common.io import IOParser, TVParser
+    # io = IOParser(config['dl_dir'])
+    # files = io.read_path('rar')
+    tvp = TVParser(config['dl_dir'])
+    tvp.scan_download_dir(config['dl_dir'])
+    files = tvp.read_path('rar')
+    # for file in files:
+    # tvp.detect_tv_show(file)
+    # if file.endswith('.rar'):
+    # tvp.unrar_archive(file)
     print "exit!"
 
 if __name__ == '__main__':
