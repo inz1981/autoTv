@@ -1,10 +1,3 @@
-'''
-Created on Jul 10, 2016
-
-@author: eeriale
-'''
-
-
 def setup_logging(level):
     import logging
     log_fmt = '%(asctime)s - %(levelname)-8s > %(message)s'

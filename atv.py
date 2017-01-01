@@ -54,8 +54,9 @@ def main():
     # io = IOParser(config['dl_dir'])
     # files = io.read_path('rar')
     tvp = TVParser(config['dl_dir'])
-    tvp.scan_download_dir(config['dl_dir'])
-    files = tvp.read_path('rar')
+    dl_content = tvp.scan_download_dir(config['dl_dir'])
+    tvp.get_media_type()
+    # files = tvp.read_path('rar')
     # for file in files:
     # tvp.detect_tv_show(file)
     # if file.endswith('.rar'):
