@@ -12,7 +12,7 @@ def parse_config(config_file):
     import os
     import sys
     cfg_file = os.path.abspath(config_file)
-    log = logging.getLogger('parse_config')
+    log = logging.getLogger(__name__)
     log.info('Starting to parse config file ({0})'.format(cfg_file))
     result = {}
 

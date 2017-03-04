@@ -1,4 +1,8 @@
 def setup_logging(level):
+    """
+    Setting up the logging level for logger
+    :param level: level, debug/info
+    """
     import logging
     log_fmt = '%(asctime)s - %(levelname)-8s > %(message)s'
     logger = logging.getLogger()

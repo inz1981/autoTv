@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 import optparse
 import logging
-from common import parse_config, logger
+import sys
+from common import logger
+from filehandle import TVParser
+from config import Config
 
 
 def main():
@@ -46,15 +49,24 @@ def main():
 
     log.info('Starting Auto TV...')
 
+    cfg = Config(options.config_file)
+    cfg_options = cfg.cfg_options
+
     # read the config
-    config = parse_config(options.config_file)
+    # config = parse_config(options.config_file)
 
     # TODO: The rest of the program...
-    from common.io import IOParser, TVParser
+
+
     # io = IOParser(config['dl_dir'])
     # files = io.read_path('rar')
-    tvp = TVParser(config['dl_dir'])
-    dl_content = tvp.scan_download_dir(config['dl_dir'])
+
+    tvp = TVParser(cfg_options['storage']['download_folder'])
+    dl_content = tvp.scan_download_dir(
+        cfg_options['storage']['download_folder'])
+    dl_content = tvp.scan_download_dir(
+        cfg_options['storage']['download_folder'])
+    sys.exit()
     tvp.get_media_type()
     # files = tvp.read_path('rar')
     # for file in files:
