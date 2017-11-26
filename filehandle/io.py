@@ -24,8 +24,9 @@ class IOParser(object):
         self.RAR_RE2 = "^((?:(?!\.part\d+\.rar$).)*)\.(?:(?:part0*1\.)" \
                        "?rar|r?0*1)$"
         self.VIDEO_EXTENSIONS = ('.avi', '.mk4', '.mpg', '.mpeg', '.m2v',
-                                 '.mpv', '.mp4', '.m4p', '.flv')
+                                 '.mpv', '.mp4', '.m4p', '.flv', 'mkv')
         self.SKIP_EXTENSIONS = '.part'
+        self.SKIP_SAMPLE = 'sample.avi'
         self.path = cfg_options['storage']['download_folder']
         self.dl_dir = None
         self.dl_content = []
@@ -79,7 +80,8 @@ class IOParser(object):
         for path, subdirs, files in os.walk(dl_path):
             self.log.debug("\n---------\npath: {0}\nsubdirs: {1}\nfiles: {2}"
                            .format(path, subdirs, files))
-            file_dls = [x for x in files if x.endswith(self.SKIP_EXTENSIONS)]
+            file_dls = [x for x in files if x.endswith(self.SKIP_EXTENSIONS) or
+                        x in self.SKIP_SAMPLE]
             if file_dls and path is not self.dl_dir:
                 self.log.warning("Skipping dir {0}, incomplete file transfers"
                                  "({1})".format(path, file_dls))
@@ -91,8 +93,12 @@ class IOParser(object):
                 if name.endswith(tuple(self.VIDEO_EXTENSIONS)):
                     self.log.debug("Detected Video format({0})"
                                    .format(filepath))
-                    content = {'path': path, 'type': 'VIDEO', 'filename': name,
-                               'filepath': filepath}
+                    content = {
+                        'path': path,
+                        'type': 'VIDEO',
+                        'filename': name,
+                        'filepath': filepath
+                    }
                     result.append(content)
                 elif name.endswith(tuple(self.RAR_EXTENSIONS)):
                     self.log.debug("Detected RAR format({0})".format(filepath))
@@ -122,6 +128,8 @@ class IOParser(object):
         """
         if not content:
             content = self.dl_content
+        #else:
+        #    print pprint.pformat(content)
         names = [
             "The.Newsroom.2012.S02E06.720p.HDTV.x264-KILLERS.mkv",
             "Breaking.Bad.S05E10.Buried.HDTV.XviD-AFG.avi",

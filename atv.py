@@ -73,21 +73,25 @@ def main():
     tv_content = tvp.get_media_type(content=content_tv)
     matched_tv = [tv['tv'] for tv in tv_content if 'tv' in tv]
     log.debug("Found matched TV series\n{0}".format(pprint.pformat(matched_tv)))
+    log.info("-- Begin iterations")
     for content in content_dl:
-        tvp.detect_tv_show(file)
-        if 'type' in content and content['type'] == 'RAR':
-            # check if tv show already exist
-            if content['tv'] in matched_tv:
-                log.warning("The TV Show ({0}) is already stored in ({1})"
-                            .format(content['tv'],
-                                    cfg_options['storage']['tv_folder']))
-            else:
-                # unrar the TV show to TV dir
-                tvp.unrar_archive(
-                    content['filepath'], dest=os.path.join(
-                        cfg_options['storage']['tv_folder'],
-                        content['tv']['show_dot'])
-                )
+        # tvp.detect_tv_show(file)
+        log.info("content: {}".format(content))
+        # check if tv show already exist
+        if 'tv' in content and content['tv'] in matched_tv:
+            log.warning(
+                "The following TV Show is already stored in ({1})\n({0})"
+                    .format(content['tv'],
+                            cfg_options['storage']['tv_folder'])
+            )
+            continue
+        elif 'type' in content and content['type'] == 'RAR':
+            # unrar the TV show to TV dir
+            tvp.unrar_archive(
+                content['filepath'], dest=os.path.join(
+                     cfg_options['storage']['tv_folder'],
+                     content['tv']['show_dot'])
+            )
 
     # Copy files to TV Folder in case no RAR archive.
     # for content in content_dl:
