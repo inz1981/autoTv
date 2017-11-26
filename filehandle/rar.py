@@ -38,7 +38,7 @@ class RarArchive:
                             os.path.join(root, filename)))
                         continue
 
-                    if delete_archive:
+                    if delete_archive == 'true':
                         self.log.warning("Deleting the rar files in folder "
                                          "({0})...".format(root))
                         self.delete_rar_files(root)
@@ -76,8 +76,10 @@ class RarArchive:
         Delete all rar files for an archive
         :param dirpath: The full path to the directory with rar archive files
         """
+        self.log.info("Deleting from ({0})".format(dirpath))
+
         onlyfiles = [f for f in os.listdir(dirpath)
-                     if os.isfile(os.join(dirpath, f))]
+                     if os.path.isfile(os.path.join(dirpath, f))]
         for rar_file in onlyfiles:
             m = re.search(r'\.rar$|\.r\d+$', rar_file)
             if m is not None:

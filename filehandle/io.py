@@ -9,12 +9,16 @@ class IOParser(object):
     """
     Input Output parser of files
     """
-    def __init__(self, path):
+    def __init__(self, cfg_options):
         """
         Instantiate the IOParser
-        :param path: directory path
+        :param cfg_options: configurations
         """
-        rarfile.UNRAR_TOOL = 'C:\Program Files\WinRAR\UnRAR.exe'
+        self.log = logging.getLogger(__name__)
+        self.log.info("Setting unrar tool: {0}".format(
+            cfg_options['general']['unrar_path']))
+        #rarfile.UNRAR_TOOL = 'C:\Program Files\WinRAR\UnRAR.exe'
+        rarfile.UNRAR_TOOL = cfg_options['general']['unrar_path']
         self.RAR_EXTENSIONS = ('.rar', '.001')
         self.RAR_RE1 = "^((?!\.part(?!0*1\.rar$)\d+\.rar$).)*\.(?:rar|r?0*1)$"
         self.RAR_RE2 = "^((?:(?!\.part\d+\.rar$).)*)\.(?:(?:part0*1\.)" \
@@ -22,11 +26,10 @@ class IOParser(object):
         self.VIDEO_EXTENSIONS = ('.avi', '.mk4', '.mpg', '.mpeg', '.m2v',
                                  '.mpv', '.mp4', '.m4p', '.flv')
         self.SKIP_EXTENSIONS = '.part'
-        self.path = path
+        self.path = cfg_options['storage']['download_folder']
         self.dl_dir = None
         self.dl_content = []
-        self.log = logging.getLogger(__name__)
-        self.log.info("Starting to read from path ({0})".format(path))
+        self.log.info("Starting to read from path ({0})".format(self.path))
 
     def read_path(self, extension):
         """
@@ -119,7 +122,6 @@ class IOParser(object):
         """
         if not content:
             content = self.dl_content
-        self.log.info(content)
         names = [
             "The.Newsroom.2012.S02E06.720p.HDTV.x264-KILLERS.mkv",
             "Breaking.Bad.S05E10.Buried.HDTV.XviD-AFG.avi",
@@ -146,17 +148,15 @@ class IOParser(object):
                 """, media['filename'], re.VERBOSE)
             self.log.debug("matching tv {0}".format(tv))
             if len(tv) > 0:
-                tv_content = {'show': tv[0][0].replace(".", " "),
-                              'season': str(int(tv[0][1])),
-                              'episode':  str(int(tv[0][2])),
-                              'quality': tv[0][3] if len(tv[0][3]) > 0 else "nonHD"
-                              }
-
+                tv_content = {
+                    'show_dot': tv[0][0],
+                    'show': tv[0][0].replace(".", " "),
+                    'season': str(tv[0][1]),
+                    'episode':  str(tv[0][2]),
+                    'quality': tv[0][3] if len(tv[0][3]) > 0 else "nonHD"
+                }
                 self.log.debug("---------- TV ----------")
-                self.log.debug("Show: {0}".format(tv_content['show']))
-                self.log.debug("Season: {0}".format(tv_content['season']))
-                self.log.debug("Episode: {0}".format(tv_content['episode']))
-                self.log.debug("Quality: {0}".format(tv_content['quality']))
+                self.log.debug("{0}".format(tv_content))
                 media['tv'] = tv_content
             else:
                 movie = re.findall(
@@ -178,6 +178,8 @@ class IOParser(object):
                 else:
                     self.log.error("Couldn't find a content for ({0})".format(
                         media['filename']))
+        self.log.debug("Returning TV content:\n{0}"
+                       .format(pprint.pformat(content)))
         return content
 
     def check_if_rar_archive(self, filename):
@@ -200,12 +202,12 @@ class TVParser(IOParser):
     Parser for TV Series
     """
 
-    def __init__(self, path):
+    def __init__(self, cfg_options):
         """
         Instantiate the TV Parser
         :param path: directory path
         """
-        super(TVParser, self).__init__(path)
+        super(TVParser, self).__init__(cfg_options)
 
     def detect_tv_show(self, folder):
         """
@@ -214,6 +216,6 @@ class TVParser(IOParser):
         :param folder: The folder name
         :return:
         """
-        self.log.info("Checking if ({0}) is a tv-series...".format(folder))
+        self.log.debug("Checking if ({0}) is a tv-series...".format(folder))
         # print re.findall(r"(?:s|season)(\d{2})(?:e|x|episode|\n)(\d{2})",
         #                 folder, re.I)

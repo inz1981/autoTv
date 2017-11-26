@@ -1,9 +1,12 @@
 #!/usr/bin/env python
+from __future__ import absolute_import, division, print_function,\
+    unicode_literals
 import optparse
+import pprint
 import logging
-import sys
+import os
 from common import logger
-from filehandle import TVParser
+from filehandle import TVParser, RarArchive
 from config import Config
 
 
@@ -49,31 +52,49 @@ def main():
 
     log.info('Starting Auto TV...')
 
+    # read the config
     cfg = Config(options.config_file)
     cfg_options = cfg.cfg_options
+    # Unrar all the content in download dir
+    # rar_archive = RarArchive()
+    # rar_archive.unrar_folders_recursive(
+    #     cfg_options['storage']['download_folder'],
+    #     cfg_options['general']['delete_archive'])
 
-    # read the config
-    # config = parse_config(options.config_file)
-
-    # TODO: The rest of the program...
-
-
-    # io = IOParser(config['dl_dir'])
-    # files = io.read_path('rar')
-
-    tvp = TVParser(cfg_options['storage']['download_folder'])
+    # Start TV Parsing
+    tvp = TVParser(cfg_options)
     dl_content = tvp.scan_download_dir(
         cfg_options['storage']['download_folder'])
-    dl_content = tvp.scan_download_dir(
-        cfg_options['storage']['download_folder'])
-    sys.exit()
-    tvp.get_media_type()
-    # files = tvp.read_path('rar')
-    # for file in files:
-    # tvp.detect_tv_show(file)
-    # if file.endswith('.rar'):
-    # tvp.unrar_archive(file)
-    print "exit!"
+
+    # get the content in the Download Dir
+    content_dl = tvp.get_media_type()
+    # get the content in the TV Dir
+    content_tv = tvp.scan_download_dir(cfg_options['storage']['tv_folder'])
+    tv_content = tvp.get_media_type(content=content_tv)
+    matched_tv = [tv['tv'] for tv in tv_content if 'tv' in tv]
+    log.debug("Found matched TV series\n{0}".format(pprint.pformat(matched_tv)))
+    for content in content_dl:
+        tvp.detect_tv_show(file)
+        if 'type' in content and content['type'] == 'RAR':
+            # check if tv show already exist
+            if content['tv'] in matched_tv:
+                log.warning("The TV Show ({0}) is already stored in ({1})"
+                            .format(content['tv'],
+                                    cfg_options['storage']['tv_folder']))
+            else:
+                # unrar the TV show to TV dir
+                tvp.unrar_archive(
+                    content['filepath'], dest=os.path.join(
+                        cfg_options['storage']['tv_folder'],
+                        content['tv']['show_dot'])
+                )
+
+    # Copy files to TV Folder in case no RAR archive.
+    # for content in content_dl:
+    #     if 'tv' in content:
+    #         log.info("Copy files from \n{0}".format(pprint.pformat(content)))
+    # log.info(pprint.pformat(matched_tv))
+    print("exit!")
 
 if __name__ == '__main__':
     main()
