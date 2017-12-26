@@ -162,11 +162,11 @@ class IOParser(object):
             self.log.debug("matching tv {0}".format(tv))
             if len(tv) > 0:
                 tv_content = {
-                    'show_dot': tv[0][0],
-                    'show': tv[0][0].replace(".", " "),
+                    'show_dot': tv[0][0].lower(),
+                    'show': tv[0][0].replace(".", " ").lower(),
                     'season': str(tv[0][1]),
                     'episode':  str(tv[0][2]),
-                    'quality': tv[0][3] if len(tv[0][3]) > 0 else "nonHD"
+                    'quality': tv[0][3] if len(tv[0][3]) > 0 else "non-hd"
                 }
                 self.log.debug("---------- TV ----------")
                 self.log.debug("{0}".format(tv_content))
@@ -186,7 +186,7 @@ class IOParser(object):
                     self.log.debug("--------- MOVIE --------")
                     self.log.debug("Title: " + movie[0][0].replace(".", " "))
                     self.log.debug("Quality: " + (
-                    movie[0][1] if len(movie[0][1]) > 0 else "nonHD"))
+                        movie[0][1] if len(movie[0][1]) > 0 else "nonHD"))
                     media['movie'] = movie_content
                 else:
                     self.log.error("Couldn't find a content for ({0})".format(
@@ -218,9 +218,10 @@ class TVParser(IOParser):
     def __init__(self, cfg_options):
         """
         Instantiate the TV Parser
-        :param path: directory path
+        :param cfg_options: config options
         """
         super(TVParser, self).__init__(cfg_options)
+        self.log = logging.getLogger(__name__)
         self.tv_contents = []
         self.tv_contents_matched = []
         self.get_stored_tv_path_contents()
@@ -237,6 +238,9 @@ class TVParser(IOParser):
         #                 folder, re.I)
 
     def get_stored_tv_path_contents(self):
+        """
+        Check the contents in TV Storage folder and match for tv contents
+        """
         self.log.info("Finding stored tv-shows...")
         content_tv = self.scan_download_dir(
             self.cfg_options['storage']['tv_folder'])
@@ -245,6 +249,11 @@ class TVParser(IOParser):
                                     if 'tv' in tv]
 
     def get_unstored_tv_contents(self):
+        """
+        Check in the downloaded dir if the contents are transferred to TV show
+        directory
+        :return: list of dicts with unstored tv-episodes
+        """
         result = []
         for content in self.dl_content:
             # tvp.detect_tv_show(file)
@@ -257,13 +266,35 @@ class TVParser(IOParser):
                                 self.cfg_options['storage']['tv_folder'])
                 )
                 continue
-            #elif 'type' in content and content['type'] == 'RAR':
-            #    # unrar the TV show to TV dir
-            #    tvp.unrar_archive(
-            #        content['filepath'], dest=os.path.join(
-            #            cfg_options['storage']['tv_folder'],
-            #            content['tv']['show_dot'])
-            #    )
             result.append(content)
-        self.log.info(result)
+        self.log.info("The unstored downloaded tv shows:\n{0}"
+                      .format(pprint.pformat(result)))
         return result
+
+    def transfer_tv_contents(self, tv_contents):
+        """
+        Copy or UNRAR contents of downloaded TV Episodes.
+        :param tv_contents: list of dicts with tv episodes
+        :return: None
+        """
+        import shutil
+        location = self.cfg_options['storage']['tv_folder']
+        for content in tv_contents:
+            if 'type' in content and content['type'] == 'RAR':
+                # unrar the TV show to TV dir
+                self.unrar_archive(
+                    content['filepath'], dest=os.path.join(
+                        location, content['tv']['show_dot']))
+            elif 'type' in content and content['type'] == 'VIDEO':
+                cp_dir = os.path.join(location, content['tv']['show_dot'])
+                self.log.info("Copy video: {} to {}".format(
+                    content['filepath'], cp_dir))
+                if not os.path.isdir(cp_dir):
+                    self.log.info("Creating directory: {}".format(cp_dir))
+                    os.makedirs(cp_dir)
+                try:
+                    shutil.copy2(content['filepath'], cp_dir)
+                except IOError as e:
+                    self.log.error("Could not copy file:\n{}".format(e))
+            else:
+                self.log.warning("Unknown Type: {}".format(content))

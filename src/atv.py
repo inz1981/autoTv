@@ -66,12 +66,17 @@ def main():
 
     # Start TV Parsing
     tvp = TVParser(cfg_options)
+    if options.verbose:
+        utils.save_json(tvp.dl_content, 'output/content_dl.json')
+        utils.save_json(tvp.tv_contents, 'output/content_tv.json')
+        utils.save_json(tvp.tv_contents_matched,
+                        'output/content_tv_matched.json')
 
-    utils.save_json(tvp.dl_content, 'content_dl.json')
-    utils.save_json(tvp.tv_contents, 'content_tv.json')
-    utils.save_json(tvp.tv_contents_matched, 'content_tv_matched.json')
+    copy_tvs = tvp.get_unstored_tv_contents()
+    if copy_tvs:
+        log.info("Transferring {} tv episode(s)...".format(len(copy_tvs)))
+        tvp.transfer_tv_contents(copy_tvs)
 
-    tvp.get_unstored_tv_contents()
     exit()
     log.debug("Found matched TV series\n{0}".format(pprint.pformat(matched_tv)))
     log.info("-- Begin iterations")
