@@ -14,6 +14,7 @@ class IOParser(object):
         Instantiate the IOParser
         :param cfg_options: configurations
         """
+        self.cfg_options = cfg_options
         self.log = logging.getLogger(__name__)
         self.log.info("Setting unrar tool: {0}".format(
             cfg_options['general']['unrar_path']))
@@ -29,7 +30,9 @@ class IOParser(object):
         self.SKIP_SAMPLE = 'sample.avi'
         self.path = cfg_options['storage']['download_folder']
         self.dl_dir = None
-        self.dl_content = []
+        self.dl_content = self.scan_download_dir(
+            self.cfg_options['storage']['download_folder'])
+        self.dl_content = self.get_media_type(self.dl_content)
         self.log.info("Starting to read from path ({0})".format(self.path))
 
     def read_path(self, extension):
@@ -66,18 +69,18 @@ class IOParser(object):
         except rarfile.RarExecError as e:
             self.log.error(e)
 
-    def scan_download_dir(self, dl_path):
+    def scan_download_dir(self, contents_path):
         """
         Scans a directory recursively for contents. This should be the
-        directory where the user is downloading content to.
-        :param dl_path: The path to the download directory
+        directory where the user has stored media contents to.
+        :param contents_path: The path to the directory to scan
         :return: a list of dicts with the content
         """
-        self.dl_dir = dl_path
+        self.dl_dir = contents_path
         self.log.info("Scanning download directory ({0}) for content..."
                       .format(self.dl_dir))
         result = []
-        for path, subdirs, files in os.walk(dl_path):
+        for path, subdirs, files in os.walk(contents_path):
             self.log.debug("\n---------\npath: {0}\nsubdirs: {1}\nfiles: {2}"
                            .format(path, subdirs, files))
             file_dls = [x for x in files if x.endswith(self.SKIP_EXTENSIONS) or
@@ -85,6 +88,9 @@ class IOParser(object):
             if file_dls and path is not self.dl_dir:
                 self.log.warning("Skipping dir {0}, incomplete file transfers"
                                  "({1})".format(path, file_dls))
+                continue
+            if path.lower().endswith('sample'):
+                self.log.warning("Skipping dir {0}, sample dir".format(path))
                 continue
             for name in files:
                 filepath = os.path.join(path, name)
@@ -117,8 +123,7 @@ class IOParser(object):
 
         self.log.debug("Got content from download dir:\n{0}".format(
             pprint.pformat(result)))
-        self.dl_content = result
-        return self.dl_content
+        return result
 
     def get_media_type(self, content=None):
         """
@@ -216,6 +221,9 @@ class TVParser(IOParser):
         :param path: directory path
         """
         super(TVParser, self).__init__(cfg_options)
+        self.tv_contents = []
+        self.tv_contents_matched = []
+        self.get_stored_tv_path_contents()
 
     def detect_tv_show(self, folder):
         """
@@ -227,3 +235,35 @@ class TVParser(IOParser):
         self.log.debug("Checking if ({0}) is a tv-series...".format(folder))
         # print re.findall(r"(?:s|season)(\d{2})(?:e|x|episode|\n)(\d{2})",
         #                 folder, re.I)
+
+    def get_stored_tv_path_contents(self):
+        self.log.info("Finding stored tv-shows...")
+        content_tv = self.scan_download_dir(
+            self.cfg_options['storage']['tv_folder'])
+        self.tv_contents = self.get_media_type(content=content_tv)
+        self.tv_contents_matched = [tv['tv'] for tv in self.tv_contents
+                                    if 'tv' in tv]
+
+    def get_unstored_tv_contents(self):
+        result = []
+        for content in self.dl_content:
+            # tvp.detect_tv_show(file)
+            self.log.debug("content: {}".format(pprint.pformat(content)))
+            # check if tv show already exist
+            if 'tv' in content and content['tv'] in self.tv_contents_matched:
+                self.log.warning(
+                    "The following TV Show is already stored in ({1})\n({0})"
+                        .format(content['tv'],
+                                self.cfg_options['storage']['tv_folder'])
+                )
+                continue
+            #elif 'type' in content and content['type'] == 'RAR':
+            #    # unrar the TV show to TV dir
+            #    tvp.unrar_archive(
+            #        content['filepath'], dest=os.path.join(
+            #            cfg_options['storage']['tv_folder'],
+            #            content['tv']['show_dot'])
+            #    )
+            result.append(content)
+        self.log.info(result)
+        return result

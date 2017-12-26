@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function,\
     unicode_literals
-import optparse
-import pprint
+
 import logging
+import optparse
 import os
-from common import logger
-from filehandle import TVParser, RarArchive
-from config import Config
+import pprint
+
+from config.config import Config
+
+from src.common import utils
+from src.filehandle import TVParser
 
 
 def main():
@@ -40,9 +43,9 @@ def main():
     # setup logging
     if options.verbose:
         # set logging to debug
-        logger.setup_logging(logging.DEBUG)
+        utils.setup_logging(logging.DEBUG)
     else:
-        logger.setup_logging(logging.INFO)
+        utils.setup_logging(logging.INFO)
 
     log.debug("Input arguments: {0}".format(options))
 
@@ -63,15 +66,13 @@ def main():
 
     # Start TV Parsing
     tvp = TVParser(cfg_options)
-    dl_content = tvp.scan_download_dir(
-        cfg_options['storage']['download_folder'])
 
-    # get the content in the Download Dir
-    content_dl = tvp.get_media_type()
-    # get the content in the TV Dir
-    content_tv = tvp.scan_download_dir(cfg_options['storage']['tv_folder'])
-    tv_content = tvp.get_media_type(content=content_tv)
-    matched_tv = [tv['tv'] for tv in tv_content if 'tv' in tv]
+    utils.save_json(tvp.dl_content, 'content_dl.json')
+    utils.save_json(tvp.tv_contents, 'content_tv.json')
+    utils.save_json(tvp.tv_contents_matched, 'content_tv_matched.json')
+
+    tvp.get_unstored_tv_contents()
+    exit()
     log.debug("Found matched TV series\n{0}".format(pprint.pformat(matched_tv)))
     log.info("-- Begin iterations")
     for content in content_dl:
@@ -81,8 +82,8 @@ def main():
         if 'tv' in content and content['tv'] in matched_tv:
             log.warning(
                 "The following TV Show is already stored in ({1})\n({0})"
-                    .format(content['tv'],
-                            cfg_options['storage']['tv_folder'])
+                .format(content['tv'],
+                        cfg_options['storage']['tv_folder'])
             )
             continue
         elif 'type' in content and content['type'] == 'RAR':
