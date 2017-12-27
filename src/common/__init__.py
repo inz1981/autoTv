@@ -7,7 +7,11 @@ def parse_config(config_file):
     :param config_file: the autotv config file (ini format)
     :return: obj, a autotv.Config subclass
     """
-    import ConfigParser
+    import sys
+    if sys.version_info < (3, 0):
+        import ConfigParser as cp
+    else:
+        import configparser as cp
     import logging
     import os
     import sys
@@ -17,7 +21,7 @@ def parse_config(config_file):
     result = {}
 
     defaults = {}
-    cfg = ConfigParser.SafeConfigParser(defaults=defaults)
+    cfg = cp.SafeConfigParser(defaults=defaults)
     if not os.path.exists(cfg_file):
         log.error("Could not find file ({0})".format(cfg_file))
         sys.exit(0)
@@ -33,8 +37,8 @@ def parse_config(config_file):
             result['dl_dir'] = dl_dir
             tv_dir = os.path.abspath(cfg.get(sec, 'tv_dir').strip())
             result['tv_dir'] = tv_dir
-        except (ConfigParser.NoOptionError,
-                ConfigParser.NoSectionError) as exp:
+        except (cp.NoOptionError,
+                cp.NoSectionError) as exp:
             log.warn(exp)
             continue
         log.debug('Got ({0}) parameter'.format(dl_dir))

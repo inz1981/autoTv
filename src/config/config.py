@@ -1,4 +1,8 @@
-import ConfigParser
+import sys
+if sys.version_info < (3, 0):
+    import ConfigParser as cp
+else:
+    import configparser as cp
 import logging
 import pprint
 import os
@@ -26,7 +30,7 @@ class Config:
         if not os.path.isfile(self.cfg_file):
             raise IOError('No such file ({0})'.format(self.cfg_file))
         self.log.info("Reading config file from ({0})".format(self.cfg_file))
-        self.cfg = ConfigParser.ConfigParser()
+        self.cfg = cp.ConfigParser()
         self.cfg.read(self.cfg_file)
 
     def config_section_map(self, section):

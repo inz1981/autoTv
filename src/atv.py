@@ -1,16 +1,12 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, division, print_function,\
     unicode_literals
-
 import logging
 import optparse
-import os
-import pprint
 
 from config.config import Config
-
-from src.common import utils
-from src.filehandle import TVParser
+from common import utils
+from filehandle.io import TVParser
 
 
 def main():
@@ -58,11 +54,6 @@ def main():
     # read the config
     cfg = Config(options.config_file)
     cfg_options = cfg.cfg_options
-    # Unrar all the content in download dir
-    # rar_archive = RarArchive()
-    # rar_archive.unrar_folders_recursive(
-    #     cfg_options['storage']['download_folder'],
-    #     cfg_options['general']['delete_archive'])
 
     # Start TV Parsing
     tvp = TVParser(cfg_options)
@@ -77,34 +68,7 @@ def main():
         log.info("Transferring {} tv episode(s)...".format(len(copy_tvs)))
         tvp.transfer_tv_contents(copy_tvs)
 
-    exit()
-    log.debug("Found matched TV series\n{0}".format(pprint.pformat(matched_tv)))
-    log.info("-- Begin iterations")
-    for content in content_dl:
-        # tvp.detect_tv_show(file)
-        log.info("content: {}".format(content))
-        # check if tv show already exist
-        if 'tv' in content and content['tv'] in matched_tv:
-            log.warning(
-                "The following TV Show is already stored in ({1})\n({0})"
-                .format(content['tv'],
-                        cfg_options['storage']['tv_folder'])
-            )
-            continue
-        elif 'type' in content and content['type'] == 'RAR':
-            # unrar the TV show to TV dir
-            tvp.unrar_archive(
-                content['filepath'], dest=os.path.join(
-                     cfg_options['storage']['tv_folder'],
-                     content['tv']['show_dot'])
-            )
-
-    # Copy files to TV Folder in case no RAR archive.
-    # for content in content_dl:
-    #     if 'tv' in content:
-    #         log.info("Copy files from \n{0}".format(pprint.pformat(content)))
-    # log.info(pprint.pformat(matched_tv))
-    print("exit!")
+    log.info("exit!")
 
 if __name__ == '__main__':
     main()

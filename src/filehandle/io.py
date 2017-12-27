@@ -77,7 +77,7 @@ class IOParser(object):
         :return: a list of dicts with the content
         """
         self.dl_dir = contents_path
-        self.log.info("Scanning download directory ({0}) for content..."
+        self.log.info("Scanning directory ({0}) for content..."
                       .format(self.dl_dir))
         result = []
         for path, subdirs, files in os.walk(contents_path):
@@ -90,7 +90,7 @@ class IOParser(object):
                                  "({1})".format(path, file_dls))
                 continue
             if path.lower().endswith('sample'):
-                self.log.warning("Skipping dir {0}, sample dir".format(path))
+                self.log.debug("Skipping dir {0}, sample dir".format(path))
                 continue
             for name in files:
                 filepath = os.path.join(path, name)
@@ -261,14 +261,13 @@ class TVParser(IOParser):
             # check if tv show already exist
             if 'tv' in content and content['tv'] in self.tv_contents_matched:
                 self.log.warning(
-                    "The following TV Show is already stored in ({1})\n({0})"
-                        .format(content['tv'],
-                                self.cfg_options['storage']['tv_folder'])
+                    "TV Show ({0}) already stored in ({1})".format(
+                        content['tv'], self.cfg_options['storage']['tv_folder'])
                 )
                 continue
             result.append(content)
-        self.log.info("The unstored downloaded tv shows:\n{0}"
-                      .format(pprint.pformat(result)))
+        self.log.info("The unstored downloaded tv shows:\n{0}".format(
+            pprint.pformat(result)))
         return result
 
     def transfer_tv_contents(self, tv_contents):
