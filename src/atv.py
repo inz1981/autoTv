@@ -64,9 +64,7 @@ def main():
                         'output/content_tv_matched.json')
 
     copy_tvs = tvp.get_unstored_tv_contents()
-    if copy_tvs:
-        log.info("Transferring {} tv episode(s)...".format(len(copy_tvs)))
-        tvp.transfer_tv_contents(copy_tvs)
+    tvp.transfer_tv_contents(copy_tvs)
 
     log.info("exit!")
 

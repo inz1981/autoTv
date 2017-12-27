@@ -277,6 +277,9 @@ class TVParser(IOParser):
         :return: None
         """
         import shutil
+        if tv_contents:
+            self.log.info("Transferring {} tv episode(s)...".format(
+                len(tv_contents)))
         location = self.cfg_options['storage']['tv_folder']
         for content in tv_contents:
             if 'type' in content and content['type'] == 'RAR':
@@ -285,6 +288,7 @@ class TVParser(IOParser):
                     content['filepath'], dest=os.path.join(
                         location, content['tv']['show_dot']))
             elif 'type' in content and content['type'] == 'VIDEO':
+                # copy the TV show to TV dir
                 cp_dir = os.path.join(location, content['tv']['show_dot'])
                 self.log.info("Copy video: {} to {}".format(
                     content['filepath'], cp_dir))
@@ -296,4 +300,4 @@ class TVParser(IOParser):
                 except IOError as e:
                     self.log.error("Could not copy file:\n{}".format(e))
             else:
-                self.log.warning("Unknown Type: {}".format(content))
+                self.log.error("Unknown Type: {}".format(content))
