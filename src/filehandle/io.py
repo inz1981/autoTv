@@ -30,7 +30,7 @@ class IOParser(object):
         self.SKIP_SAMPLE = 'sample.avi'
         self.path = cfg_options['storage']['download_folder']
         self.dl_dir = None
-        self.dl_content = self.scan_download_dir(
+        self.dl_content = self.scan_content_dir(
             self.cfg_options['storage']['download_folder'])
         self.dl_content = self.get_media_type(self.dl_content)
         self.log.info("Starting to read from path ({0})".format(self.path))
@@ -69,7 +69,7 @@ class IOParser(object):
         except rarfile.RarExecError as e:
             self.log.error(e)
 
-    def scan_download_dir(self, contents_path):
+    def scan_content_dir(self, contents_path):
         """
         Scans a directory recursively for contents. This should be the
         directory where the user has stored media contents to.
@@ -159,7 +159,7 @@ class IOParser(object):
                 [ .a-zA-Z]* # Space, period, or words like PROPER/Buried
                 (\d{3,4}p)? # Quality
                 """, media['filename'], re.VERBOSE)
-            self.log.debug("matching tv {0}".format(tv))
+            self.log.debug("matched tv {0}".format(tv))
             if len(tv) > 0:
                 tv_content = {
                     'show_dot': tv[0][0].lower(),
@@ -172,28 +172,42 @@ class IOParser(object):
                 self.log.debug("{0}".format(tv_content))
                 media['tv'] = tv_content
             else:
-                movie = re.findall(
-                    r"""(.*?[ .]\d{4}) # Title including year
-                    [ .a-zA-Z]* # Space, period, or words
-                    (\d{3,4}p)? # Quality
-                    """, media['filename'], re.VERBOSE)
-                if len(movie) > 0:
-                    movie_content = {
-                        'title': movie[0][0].replace(".", " "),
-                        'quality': movie[0][1] if len(movie[0][1]) > 0
-                            else "nonHD"
-                    }
-                    self.log.debug("--------- MOVIE --------")
-                    self.log.debug("Title: " + movie[0][0].replace(".", " "))
-                    self.log.debug("Quality: " + (
-                        movie[0][1] if len(movie[0][1]) > 0 else "nonHD"))
+                movie_content = self._match_movie_format(media['filename'])
+                if movie_content:
                     media['movie'] = movie_content
                 else:
-                    self.log.error("Couldn't find a content for ({0})".format(
-                        media['filename']))
-        self.log.debug("Returning TV content:\n{0}"
+                    moviedir = os.path.basename(os.path.normpath(media['path']))
+                    movie_content = self._match_movie_format(moviedir)
+                    if movie_content:
+                        media['movie'] = movie_content
+                    else:
+                        self.log.warning(
+                            "Couldn't find a media type for ({0})".format(
+                                media))
+
+        self.log.debug("Returning MEDIA content:\n{0}"
                        .format(pprint.pformat(content)))
         return content
+
+    def _match_movie_format(self, str_match):
+        movie = re.findall(
+            r"""(.*?[ .]\d{4}) # Title including year
+            [ .a-zA-Z]* # Space, period, or words
+            (\d{3,4}p)? # Quality
+            """, str_match, re.VERBOSE)
+        if len(movie) > 0:
+            movie_content = {
+                'title': movie[0][0].replace(".", " "),
+                'quality': movie[0][1] if len(movie[0][1]) > 0 else "nonHD"
+            }
+            self.log.debug(movie_content)
+            self.log.debug("--------- MOVIE --------")
+            self.log.debug("Title: " + movie[0][0].replace(".", " "))
+            self.log.debug("Quality: " + (
+                movie[0][1] if len(movie[0][1]) > 0 else "nonHD"))
+            return movie_content
+
+        return None
 
     def check_if_rar_archive(self, filename):
         """
@@ -242,7 +256,7 @@ class TVParser(IOParser):
         Check the contents in TV Storage folder and match for tv contents
         """
         self.log.info("Finding stored tv-shows...")
-        content_tv = self.scan_download_dir(
+        content_tv = self.scan_content_dir(
             self.cfg_options['storage']['tv_folder'])
         self.tv_contents = self.get_media_type(content=content_tv)
         self.tv_contents_matched = [tv['tv'] for tv in self.tv_contents
@@ -281,6 +295,91 @@ class TVParser(IOParser):
             self.log.info("Transferring {} tv episode(s)...".format(
                 len(tv_contents)))
         location = self.cfg_options['storage']['tv_folder']
+        for content in tv_contents:
+            if 'type' in content and content['type'] == 'RAR':
+                # unrar the TV show to TV dir
+                self.unrar_archive(
+                    content['filepath'], dest=os.path.join(
+                        location, content['tv']['show_dot']))
+            elif 'type' in content and content['type'] == 'VIDEO':
+                # copy the TV show to TV dir
+                cp_dir = os.path.join(location, content['tv']['show_dot'])
+                self.log.info("Copy video: {} to {}".format(
+                    content['filepath'], cp_dir))
+                if not os.path.isdir(cp_dir):
+                    self.log.info("Creating directory: {}".format(cp_dir))
+                    os.makedirs(cp_dir)
+                try:
+                    shutil.copy2(content['filepath'], cp_dir)
+                except IOError as e:
+                    self.log.error("Could not copy file:\n{}".format(e))
+            else:
+                self.log.error("Unknown Type: {}".format(content))
+
+
+class MovieParser(IOParser):
+    """
+    Parser for Movies
+    """
+
+    def __init__(self, cfg_options):
+        """
+        Instantiate the Movie Parser
+        :param cfg_options: config options
+        """
+        super(MovieParser, self).__init__(cfg_options)
+        self.log = logging.getLogger(__name__)
+        self.movie_contents = []
+        self.movie_contents_matched = []
+        self.get_stored_movie_path_contents()
+
+    def get_stored_movie_path_contents(self):
+        """
+        Check the contents in Movie Storage folder and match for movie contents
+        """
+        self.log.info("Finding stored movie...")
+        content_tv = self.scan_content_dir(
+            self.cfg_options['storage']['movie_folder'])
+        self.movie_contents = self.get_media_type(content=content_tv)
+        self.movie_contents_matched = [
+            movies['movies'] for movies in self.movie_contents
+            if 'tv' in movies
+        ]
+
+    def get_unstored_movie_contents(self):
+        """
+        Check in the downloaded dir if the contents are transferred to Movies
+        directory
+        :return: list of dicts with unstored movies
+        """
+        result = []
+        for content in self.dl_content:
+            # tvp.detect_tv_show(file)
+            self.log.debug("content: {}".format(pprint.pformat(content)))
+            # check if tv show already exist
+            if 'tv' in content and content['tv'] in self.tv_contents_matched:
+                self.log.warning(
+                    "Movie ({0}) already stored in ({1})".format(
+                        content['movie'],
+                        self.cfg_options['storage']['movie_folder'])
+                )
+                continue
+            result.append(content)
+        self.log.info("The unstored downloaded movies:\n{0}".format(
+            pprint.pformat(result)))
+        return result
+
+    def transfer_movie_contents(self, tv_contents):
+        """
+        Copy or UNRAR contents of downloaded TV Episodes.
+        :param tv_contents: list of dicts with tv episodes
+        :return: None
+        """
+        import shutil
+        if tv_contents:
+            self.log.info("Transferring {} movie(s)...".format(
+                len(tv_contents)))
+        location = self.cfg_options['storage']['movies_folder']
         for content in tv_contents:
             if 'type' in content and content['type'] == 'RAR':
                 # unrar the TV show to TV dir

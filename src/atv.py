@@ -6,7 +6,7 @@ import optparse
 
 from config.config import Config
 from common import utils
-from filehandle.io import TVParser
+from filehandle.io import TVParser, MovieParser
 
 
 def main():
@@ -62,9 +62,16 @@ def main():
         utils.save_json(tvp.tv_contents, 'output/content_tv.json')
         utils.save_json(tvp.tv_contents_matched,
                         'output/content_tv_matched.json')
-
     copy_tvs = tvp.get_unstored_tv_contents()
     tvp.transfer_tv_contents(copy_tvs)
+
+    # Start TV Parsing
+    mp = MovieParser(cfg_options)
+    if options.verbose:
+        utils.save_json(mp.dl_content, 'output/content_dl.json')
+        utils.save_json(mp.movie_contents, 'output/content_movies.json')
+        utils.save_json(mp.movie_contents_matched,
+                        'output/content_movies_matched.json')
 
     log.info("exit!")
 
