@@ -53,25 +53,22 @@ def main():
 
     # read the config
     cfg = Config(options.config_file)
-    cfg_options = cfg.cfg_options
+    #cfg_options = cfg.cfg_options
+
+    # the dir from where atv is located
+    basedir = utils.get_exec_path(__file__)
 
     # Start TV Parsing
-    tvp = TVParser(cfg_options)
+    tvp = TVParser(cfg)
     if options.verbose:
-        utils.save_json(tvp.dl_content, 'output/content_dl.json')
-        utils.save_json(tvp.tv_contents, 'output/content_tv.json')
-        utils.save_json(tvp.tv_contents_matched,
-                        'output/content_tv_matched.json')
+        tvp.store_debug_info()
     copy_tvs = tvp.get_unstored_tv_contents()
     tvp.transfer_tv_contents(copy_tvs)
 
-    # Start TV Parsing
-    mp = MovieParser(cfg_options)
+    # Start Movie Parsing
+    mp = MovieParser(cfg)
     if options.verbose:
-        utils.save_json(mp.dl_content, 'output/content_dl.json')
-        utils.save_json(mp.movie_contents, 'output/content_movies.json')
-        utils.save_json(mp.movie_contents_matched,
-                        'output/content_movies_matched.json')
+        mp.store_debug_info()
 
     log.info("exit!")
 

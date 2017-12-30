@@ -21,6 +21,8 @@ class Config:
         self.cfg_file = os.path.abspath(config_path)
         self.cfg = None
         self.read_cfg()
+        # dict data of config
+        self.cfg_contents = None
         self.cfg_sections = ['general', 'storage']
 
     def read_cfg(self):
@@ -78,9 +80,22 @@ class Config:
             }
         }
         """
-        result = {}
+        self.log.info("start cfg_cont")
+        if self.cfg_contents is not None: return self.cfg_contents
+        self.log.info("create cfg_cont")
+        self.cfg_contents = {}
         for section in self.cfg_sections:
             self.log.debug("parsing section: {0}".format(section))
-            result[section] = self.config_section_map(section)
-        self.log.debug("cfg_options:\n{0}".format(pprint.pformat(result)))
-        return result
+            self.cfg_contents[section] = self.config_section_map(section)
+        self.log.debug("cfg_options:\n{0}".format(pprint.pformat(
+            self.cfg_contents)))
+        return self.cfg_contents
+
+    def get_debug_storage(self):
+        """
+        Get the debug folder to store files in
+        :return: path to debug folder or None
+        """
+        if 'debug_folder' in self.cfg_contents['storage']:
+            return self.cfg_contents['storage']['debug_folder']
+        return None

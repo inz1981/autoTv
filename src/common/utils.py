@@ -1,5 +1,6 @@
 import logging
 
+
 def setup_logging(level):
     """
     Setting up the logging level for logger
@@ -20,3 +21,10 @@ def save_json(content, filename):
     with open(filename, 'w') as outfile:
         json.dump(content, outfile, indent=4)
     logger.info("written file: {0}".format(filename))
+
+
+def get_exec_path(filepath=None):
+    import os
+    if not filepath:
+        filepath = __file__
+    return os.path.dirname(os.path.realpath(filepath))

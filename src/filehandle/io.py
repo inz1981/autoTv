@@ -9,17 +9,19 @@ class IOParser(object):
     """
     Input Output parser of files
     """
-    def __init__(self, cfg_options):
+    def __init__(self, cfg):
         """
         Instantiate the IOParser
-        :param cfg_options: configurations
+        :param cfg: Config object
         """
-        self.cfg_options = cfg_options
+        # Config object
+        self.cfg = cfg
+        self.cfg_options = cfg.cfg_options
         self.log = logging.getLogger(__name__)
         self.log.info("Setting unrar tool: {0}".format(
-            cfg_options['general']['unrar_path']))
-        #rarfile.UNRAR_TOOL = 'C:\Program Files\WinRAR\UnRAR.exe'
-        rarfile.UNRAR_TOOL = cfg_options['general']['unrar_path']
+            self.cfg_options['general']['unrar_path']))
+        # rarfile.UNRAR_TOOL = 'C:\Program Files\WinRAR\UnRAR.exe'
+        rarfile.UNRAR_TOOL = self.cfg_options['general']['unrar_path']
         self.RAR_EXTENSIONS = ('.rar', '.001')
         self.RAR_RE1 = "^((?!\.part(?!0*1\.rar$)\d+\.rar$).)*\.(?:rar|r?0*1)$"
         self.RAR_RE2 = "^((?:(?!\.part\d+\.rar$).)*)\.(?:(?:part0*1\.)" \
@@ -28,7 +30,7 @@ class IOParser(object):
                                  '.mpv', '.mp4', '.m4p', '.flv', 'mkv')
         self.SKIP_EXTENSIONS = '.part'
         self.SKIP_SAMPLE = 'sample.avi'
-        self.path = cfg_options['storage']['download_folder']
+        self.path = self.cfg_options['storage']['download_folder']
         self.dl_dir = None
         self.dl_content = self.scan_content_dir(
             self.cfg_options['storage']['download_folder'])
@@ -229,12 +231,12 @@ class TVParser(IOParser):
     Parser for TV Series
     """
 
-    def __init__(self, cfg_options):
+    def __init__(self, cfg):
         """
         Instantiate the TV Parser
-        :param cfg_options: config options
+        :param cfg: Config object
         """
-        super(TVParser, self).__init__(cfg_options)
+        super(TVParser, self).__init__(cfg)
         self.log = logging.getLogger(__name__)
         self.tv_contents = []
         self.tv_contents_matched = []
@@ -316,18 +318,36 @@ class TVParser(IOParser):
             else:
                 self.log.error("Unknown Type: {}".format(content))
 
+    def store_debug_info(self):
+        """
+        Stre debug files, such as JSON data and output printouts.
+        :return: None
+        """
+        from common import utils
+        logdir = self.cfg.get_debug_storage()
+        if not logdir:
+            logdir = "{0}/../output/".format(utils.get_exec_path(__file__))
+        self.log.info("Logdir is: {}".format(logdir))
+        utils.save_json(self.dl_content, os.path.join(
+            logdir, 'content_dl.json'))
+        utils.save_json(self.tv_contents, os.path.join(
+            logdir, 'content_tv.json'))
+        utils.save_json(self.tv_contents_matched, os.path.join(
+            logdir, 'content_tv_matched.json'))
+        self.log.info("Stored TV debug logs")
+
 
 class MovieParser(IOParser):
     """
     Parser for Movies
     """
 
-    def __init__(self, cfg_options):
+    def __init__(self, cfg):
         """
         Instantiate the Movie Parser
-        :param cfg_options: config options
+        :param cfg: Config object
         """
-        super(MovieParser, self).__init__(cfg_options)
+        super(MovieParser, self).__init__(cfg)
         self.log = logging.getLogger(__name__)
         self.movie_contents = []
         self.movie_contents_matched = []
@@ -400,3 +420,20 @@ class MovieParser(IOParser):
                     self.log.error("Could not copy file:\n{}".format(e))
             else:
                 self.log.error("Unknown Type: {}".format(content))
+
+    def store_debug_info(self):
+        """
+        Stre debug files, such as JSON data and output printouts.
+        :return: None
+        """
+        from common import utils
+        logdir = self.cfg.get_debug_storage()
+        if not logdir:
+            logdir = "{0}/../output/".format(utils.get_exec_path(__file__))
+        self.log.debug("Logdir is: {}".format(logdir))
+        utils.save_json(self.dl_content, os.path.join(
+            logdir, 'content_dl.json'))
+        utils.save_json(self.movie_contents, os.path.join(
+            logdir, 'content_movie.json'))
+        utils.save_json(self.movie_contents_matched, os.path.join(
+            logdir, 'content_movie_matched.json'))
