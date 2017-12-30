@@ -135,31 +135,34 @@ class IOParser(object):
         """
         if not content:
             content = self.dl_content
-        #else:
-        #    print pprint.pformat(content)
+
         names = [
             "The.Newsroom.2012.S02E06.720p.HDTV.x264-KILLERS.mkv",
             "Breaking.Bad.S05E10.Buried.HDTV.XviD-AFG.avi",
-            "Breaking.Bad.S05E10.Buried.720p.HDTV.x264-AFG.mkv", # Incorrectly nonHD
+            # Incorrectly nonHD
+            "Breaking.Bad.S05E10.Buried.720p.HDTV.x264-AFG.mkv",
             "Dexter.S08E08.HDTV.XviD-AFG.avi",
             "Dexter.S08E07.1080p.HDTV.x264-QCF.mkv",
             "Dexter S08E07 720p HDTV x264-QCF.mkv",
-            "The.Great.Gatsby.2013.BluRay.1080p.DTS.x264-CHD.mkv", # Incorrectly nonHD
+            # Incorrectly nonHD
+            "The.Great.Gatsby.2013.BluRay.1080p.DTS.x264-CHD.mkv",
             "The Forbidden Girl 2013 BRRIP Xvid AC3-BHRG.avi",
             "Pain.&.Gain.2013.720p.BluRay.DD5.1.x264-HiDt.mkv",
             "Band.of.Brothers.S01E02.Day.of.Days.DVDRip.XviD-AC3-BAGS.avi",
-            "Dexter.S08E06.PROPER.720p.HDTV.x264-IMMERSE.mkv", # Incorrectly nonHD
-            "Dexter S08E06 PROPER 720p HDTV x264-IMMERSE.mkv", # Incorrectly nonHD
+            # Incorrectly nonHD
+            "Dexter.S08E06.PROPER.720p.HDTV.x264-IMMERSE.mkv",
+            # Incorrectly nonHD
+            "Dexter S08E06 PROPER 720p HDTV x264-IMMERSE.mkv",
             "another.tv.show.s03e09.avi"
         ]
         for media in content:
             tv = re.findall(
-                r"""(.*)    # Title
+                r"""(.*)  # Title
                 [ .]
                 [S|s](\d{1,2})  # Season
                 [E|e](\d{1,2})  # Episode
-                [ .a-zA-Z]* # Space, period, or words like PROPER/Buried
-                (\d{3,4}p)? # Quality
+                [ .a-zA-Z]*  # Space, period, or words like PROPER/Buried
+                (\d{3,4}p)?  # Quality
                 """, media['filename'], re.VERBOSE)
             self.log.debug("matched tv {0}".format(tv))
             if len(tv) > 0:
@@ -178,7 +181,8 @@ class IOParser(object):
                 if movie_content:
                     media['movie'] = movie_content
                 else:
-                    moviedir = os.path.basename(os.path.normpath(media['path']))
+                    moviedir = os.path.basename(os.path.normpath(
+                        media['path']))
                     movie_content = self._match_movie_format(moviedir)
                     if movie_content:
                         media['movie'] = movie_content
@@ -278,7 +282,8 @@ class TVParser(IOParser):
             if 'tv' in content and content['tv'] in self.tv_contents_matched:
                 self.log.warning(
                     "TV Show ({0}) already stored in ({1})".format(
-                        content['tv'], self.cfg_options['storage']['tv_folder'])
+                        content['tv'],
+                        self.cfg_options['storage']['tv_folder'])
                 )
                 continue
             result.append(content)

@@ -1,11 +1,11 @@
+import logging
+import os
+import pprint
 import sys
 if sys.version_info < (3, 0):
     import ConfigParser as cp
 else:
     import configparser as cp
-import logging
-import pprint
-import os
 
 
 class Config:
@@ -80,9 +80,9 @@ class Config:
             }
         }
         """
-        self.log.info("start cfg_cont")
-        if self.cfg_contents is not None: return self.cfg_contents
-        self.log.info("create cfg_cont")
+        if self.cfg_contents is not None:
+            return self.cfg_contents
+
         self.cfg_contents = {}
         for section in self.cfg_sections:
             self.log.debug("parsing section: {0}".format(section))

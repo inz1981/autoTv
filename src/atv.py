@@ -53,10 +53,7 @@ def main():
 
     # read the config
     cfg = Config(options.config_file)
-    #cfg_options = cfg.cfg_options
-
-    # the dir from where atv is located
-    basedir = utils.get_exec_path(__file__)
+    # cfg_options = cfg.cfg_options
 
     # Start TV Parsing
     tvp = TVParser(cfg)
