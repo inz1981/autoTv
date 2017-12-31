@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 import sys
 import os
+import logging
 import unittest
 sys.path.append(os.path.join(os.path.dirname(__file__), '../src/'))
 
 
 class TestConfig(unittest.TestCase):
+    def setUp(self):
+        self.log = logging.getLogger(__name__)
 
     def test_load_config(self):
         """
