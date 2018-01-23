@@ -303,25 +303,26 @@ class TVParser(IOParser):
                 len(tv_contents)))
         location = self.cfg_options['storage']['tv_folder']
         for content in tv_contents:
-            if 'type' in content and content['type'] == 'RAR':
-                # unrar the TV show to TV dir
-                self.unrar_archive(
-                    content['filepath'], dest=os.path.join(
-                        location, content['tv']['show_dot']))
-            elif 'type' in content and content['type'] == 'VIDEO':
-                # copy the TV show to TV dir
-                cp_dir = os.path.join(location, content['tv']['show_dot'])
-                self.log.info("Copy video: {} to {}".format(
-                    content['filepath'], cp_dir))
-                if not os.path.isdir(cp_dir):
-                    self.log.info("Creating directory: {}".format(cp_dir))
-                    os.makedirs(cp_dir)
-                try:
-                    shutil.copy2(content['filepath'], cp_dir)
-                except IOError as e:
-                    self.log.error("Could not copy file:\n{}".format(e))
-            else:
-                self.log.error("Unknown Type: {}".format(content))
+            if 'tv' in content and 'show_dot' in content['tv']:
+                if 'type' in content and content['type'] == 'RAR':
+                    # unrar the TV show to TV dir
+                    self.unrar_archive(
+                        content['filepath'], dest=os.path.join(
+                            location, content['tv']['show_dot']))
+                elif 'type' in content and content['type'] == 'VIDEO':
+                    # copy the TV show to TV dir
+                    cp_dir = os.path.join(location, content['tv']['show_dot'])
+                    self.log.info("Copy video: {} to {}".format(
+                        content['filepath'], cp_dir))
+                    if not os.path.isdir(cp_dir):
+                        self.log.info("Creating directory: {}".format(cp_dir))
+                        os.makedirs(cp_dir)
+                    try:
+                        shutil.copy2(content['filepath'], cp_dir)
+                    except IOError as e:
+                        self.log.error("Could not copy file:\n{}".format(e))
+                else:
+                    self.log.error("Unknown Type: {}".format(content))
 
     def store_debug_info(self):
         """
