@@ -383,7 +383,8 @@ class MovieParser(IOParser):
             # tvp.detect_tv_show(file)
             self.log.debug("content: {}".format(pprint.pformat(content)))
             # check if tv show already exist
-            if 'tv' in content and content['tv'] in self.tv_contents_matched:
+            if 'tv' in content and content['tv'] in \
+                    self.movie_contents_matched:
                 self.log.warning(
                     "Movie ({0}) already stored in ({1})".format(
                         content['movie'],

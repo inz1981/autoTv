@@ -3,18 +3,18 @@ import sys
 import os
 import logging
 import unittest
-sys.path.append(os.path.join(os.path.dirname(__file__), '../src/'))
 
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
-        self.log = logging.getLogger(__name__)
+        sys.path.append(os.path.join(os.path.dirname(__file__), '../src/'))
+        self.logger = logging.getLogger(__name__)
 
     def test_load_config(self):
         """
         Test that config class can be instantiated
         """
-        from config.config import Config
+        from config import Config
 
         cfg = Config(os.path.join(os.path.dirname(__file__),
                                   'config/tests.cfg'))

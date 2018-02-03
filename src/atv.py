@@ -1,16 +1,20 @@
 #!/usr/bin/env python
+"""
+Main script for autotv
+"""
 from __future__ import absolute_import, division, print_function,\
     unicode_literals
 import logging
 import optparse
 
-from config.config import Config
+from config import Config
 from common import utils
-from filehandle.io import TVParser, MovieParser
+from filehandle import TVParser, MovieParser
 
 
 def main():
-    """Main function
+    """
+    Main function
     """
     log = logging.getLogger(__name__)
     log.info("Starting AutoTV")
@@ -34,7 +38,7 @@ def main():
         default=False,
         help="print more info")
 
-    options, args = parser.parse_args()
+    options, _ = parser.parse_args()
 
     # setup logging
     if options.verbose:
@@ -43,7 +47,7 @@ def main():
     else:
         utils.setup_logging(logging.INFO)
 
-    log.debug("Input arguments: {0}".format(options))
+    log.debug("Input arguments: {%s}".format(options))
 
     # the config file is mandatory
     if not options.config_file:
@@ -63,9 +67,9 @@ def main():
     tvp.transfer_tv_contents(copy_tvs)
 
     # Start Movie Parsing
-    mp = MovieParser(cfg)
+    movieparser = MovieParser(cfg)
     if options.verbose:
-        mp.store_debug_info()
+        movieparser.store_debug_info()
 
     log.info("exit!")
 
